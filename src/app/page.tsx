@@ -10,7 +10,7 @@ export default async function Home() {
 
   const data: ScrapedDataResponse = await res.json()
   console.log('ScrapedDataResponse', data)
-  const match = data.featuredMatch
+  const match = data.featuredMatch as any; // Type as any to access all params
   const scheduleWeeks = data.schedule
   const pointsTableData = data.pointsTable; // Get points table data
 
@@ -51,61 +51,85 @@ export default async function Home() {
       <section>
         <h2 className="text-xl font-bold mb-4">Featured Match</h2>
         <div className="bg-white rounded-lg shadow overflow-hidden border">
-          {match.status === 'post' && (
+          {match.MatchStatus === 'Post' && ( // Use MatchStatus from full object
             <div className="bg-green-500 p-2 text-white text-sm font-medium flex items-center justify-start">
               <div className="flex-1">Completed</div>
-              <span>{match.time} IST</span>
+              <span>{match.MatchTime} IST</span>
             </div>
           )}
-          {match.status !== 'post' && match.status === 'live' && (
+          {match.MatchStatus !== 'Post' && match.MatchStatus === 'In Progress' && ( // Use MatchStatus from full object
             <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-2 text-white text-sm font-medium flex items-center justify-start">
               <div className="flex-1">LIVE</div>
-              <span>{match.time} IST</span>
+              <span>{match.MatchTime} IST</span>
             </div>
           )}
-          {match.status !== 'post' && match.status !== 'live' && (
+          {match.MatchStatus !== 'Post' && match.MatchStatus !== 'In Progress' && ( // Use MatchStatus from full object
               <div className="bg-gray-200 p-2 text-gray-700 text-sm font-medium flex items-center justify-start">
-                <div className="flex-1">{match.status?.toUpperCase() || 'UPCOMING'}</div>
-                <span>{match.time} IST</span>
+                <div className="flex-1">{match.MatchStatus?.toUpperCase() || 'UPCOMING'}</div>
+                <span>{match.MatchTime} IST</span>
               </div>
           )}
           <div className="p-4 md:p-6">
+            <h3 className="text-lg font-semibold text-center mb-4">{match.MatchName}</h3> {/* Match Name */}
+            <p className="text-center text-sm text-gray-500 mb-2">{match.MatchType}</p> {/* Match Type */}
             <div className="flex flex-col md:flex-row items-center justify-between gap-6">
               <div className="flex flex-1 flex-col items-center text-center">
                 <div className="w-16 h-16 rounded-full bg-gray-100 border-2 border-gray-300 flex items-center justify-center mb-2">
-                  <span className="text-gray-500 text-xl font-bold">{match.team1.substring(0,3).toUpperCase()}</span>
+                  {match.MatchHomeTeamLogo ? ( // Use team logos if available
+                    <img src={match.MatchHomeTeamLogo} alt={match.FirstBattingTeamName} className="w-full h-full rounded-full object-contain" />
+                  ) : (
+                    <span className="text-gray-500 text-xl font-bold">{match.FirstBattingTeamCode.substring(0,3).toUpperCase()}</span>
+                  )}
                 </div>
-                <h3 className="font-bold">{match.team1}</h3>
-                <p className="text-2xl font-bold mt-2">{match.score1 || "-"}</p>
-                <p className="text-sm text-gray-500">({match.overs1 || "-"} overs)</p>
+                <h3 className="font-bold">{match.FirstBattingTeamName}</h3>
+                <p className="text-2xl font-bold mt-2">{match["1Summary"] || "-"}</p>
+                <p className="text-sm text-gray-500">({match["1FallOvers"] || "-"} overs)</p>
               </div>
 
               <div className="flex flex-col items-center">
                 <div className="text-sm font-medium text-gray-500 mb-2">Match Details</div>
                 <div className="text-xl font-bold">VS</div>
                 <div className="flex items-center mt-4 text-sm text-gray-600">
-                  <span>{match.venue}</span>
+                  <span>{match.GroundName}</span> {/* Use GroundName from full object */}
                 </div>
-                <div className="text-sm text-gray-600">{match.time}</div>
+                <div className="text-sm text-gray-600">{match.MatchDateNew}, {match.MatchTime} IST</div> {/* Use MatchDateNew and MatchTime */}
               </div>
 
               <div className="flex flex-1 flex-col items-center text-center">
                 <div className="w-16 h-16 rounded-full bg-gray-100 border-2 border-gray-300 flex items-center justify-center mb-2">
-                  <span className="text-gray-500 text-xl font-bold">{match.team2.substring(0,3).toUpperCase()}</span>
+                  {match.MatchAwayTeamLogo ? ( // Use team logos if available
+                    <img src={match.MatchAwayTeamLogo} alt={match.SecondBattingTeamName} className="w-full h-full rounded-full object-contain" />
+                  ) : (
+                    <span className="text-gray-500 text-xl font-bold">{match.SecondBattingTeamCode.substring(0,3).toUpperCase()}</span>
+                  )}
                 </div>
-                <h3 className="font-bold">{match.team2}</h3>
-                <p className="text-2xl font-bold mt-2">{match.score2 || "-"}</p>
-                <p className="text-sm text-gray-500">({match.overs2 || "-"} overs)</p>
+                <h3 className="font-bold">{match.SecondBattingTeamName}</h3>
+                <p className="text-2xl font-bold mt-2">{match["2Summary"] || "-"}</p>
+                <p className="text-sm text-gray-500">({match["2FallOvers"] || "-"} overs)</p>
               </div>
             </div>
-            {match.status === 'post' && (
+            {match.MatchStatus === 'Post' && ( // Use MatchStatus from full object
               <div className="mt-6 text-center">
-                <p className="text-sm font-medium text-green-600">Match Completed</p>
+                <p className="text-sm font-medium text-green-600">
+                  {match.Commentss} {/* Use Commentss for match result */}
+                  {match.MOM ? <>, Player of the Match: {match.MOM}</> : null} {/* Show MOM if available */}
+                </p>
+                {match.PostMatchCommentary && ( // Show Post Match Commentary if available
+                  <div className="mt-2 text-gray-700 text-sm" dangerouslySetInnerHTML={{ __html: match.PostMatchCommentary.substring(0, 200) + '...' }} />
+                )}
               </div>
             )}
-            {match.status !== 'post' && match.status !== 'live' && (
+            {match.MatchStatus !== 'Post' && match.MatchStatus !== 'In Progress' && ( // Use MatchStatus from full object
               <div className="mt-6 text-center">
-                <p className="text-sm font-medium text-gray-600">Match {match.status || 'scheduled'}</p>
+                <p className="text-sm font-medium text-gray-600">Match {match.MatchStatus || 'scheduled'}</p>
+                {match.PreMatchCommentary && ( // Show Pre Match Commentary if available
+                  <div className="mt-2 text-gray-700 text-sm" dangerouslySetInnerHTML={{ __html: match.PreMatchCommentary.substring(0, 200) + '...' }} />
+                )}
+              </div>
+            )}
+             {match.MatchStatus === 'In Progress' && match.MatchBreakComments && ( // Show Match Break Commentary if available during live match
+              <div className="mt-6 text-center">
+                <p className="text-sm font-medium text-blue-700">{match.MatchBreakComments}</p>
               </div>
             )}
           </div>
@@ -197,6 +221,6 @@ export default async function Home() {
           </div>
         </div>
       </section>
-    </section>  
+    </section>
   )
 }
