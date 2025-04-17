@@ -1,57 +1,44 @@
-// app/page.tsx
 "use client"
 
-import { useEffect, useState } from "react";
+import { useIplStore } from '@/store/iplStore';
 import FeaturedMatchCard from "./components/FeaturedMatchCard";
-import UpcomingMatchesCarousel from './components/UpcomingMatchesCarousel'; // Adjust path if needed
-import PointsTableSection from './components/PointsTableSection'; // Adjust path if needed
+import UpcomingMatchesCarousel from './components/UpcomingMatchesCarousel';
+import PointsTableSection from './components/PointsTableSection';
 
-export const dynamic = "force-dynamic"; // Server-side rendering
+export const dynamic = "force-dynamic";
 
 export default function Home() {
-  const [data, setData] = useState<ScrapedDataResponse | null>(null);
+  const { data, loading, error } = useIplStore();
 
-  // Function to fetch data from the API
-  const fetchData = async () => {
-    try {
-      const res = await fetch(process.env.NEXT_PUBLIC_API_URL || "/api/ipl-data", { cache: "no-store" });
-      console.log("Fetching data from API...");
-      const fetchedData: ScrapedDataResponse = await res.json();
-      console.log('ScrapedDataResponse', fetchedData);
-      setData(fetchedData); // Update state with the fetched data
-    } catch (error) {
-      console.error("Error fetching data:", error);
-    }
-  };
 
-  // Initial fetch on component mount
-  useEffect(() => {
-    fetchData(); // Initial data fetch when the component mounts
-
-    // Set an interval to re-fetch the data every 10 seconds
-    const intervalId = setInterval(fetchData, 30000); // 10000 ms = 10 seconds
-
-    // Cleanup the interval when the component unmounts
-    return () => clearInterval(intervalId);
-  }, []); // Empty dependency array to run once on mount
-
-  // Return loading state if data is not yet fetched
-  if (!data) {
-    return <p>Loading data...</p>;
+  if (loading) {
+    return <p>Loading IPL data...</p>;
   }
 
-  const match = data.featuredMatch as ScheduleMatchRaw | null;
-  const scheduleWeeks = data.schedule;
-  const pointsTableData = data.pointsTable;
-  const matchNotes = data.matchNotes
+  if (error) {
+    return <p>Error loading data: {error}</p>;
+  }
+
+  if (!data) {
+    return <p>No data available at the moment.</p>;
+  }
+
+  const match = data.featuredMatch;
+  const scheduleWeeks = data.schedule || [];
+  const pointsTableData = data.pointsTable || [];
+  const matchNotes = data.matchNotes || [];
 
   if (!match) {
-    return <p>No featured match data available.</p>;
+    console.warn("Featured match data is missing from the store.");
   }
 
   const allScheduleMatches: ScheduleMatch[] = scheduleWeeks.reduce(
     (matches: ScheduleMatch[], week: ScheduleWeek): ScheduleMatch[] => {
-      return [...matches, ...week.matches];
+      // Ensure week.matches exists and is an array
+      if (Array.isArray(week.matches)) {
+        return [...matches, ...week.matches];
+      }
+      return matches;
     },
     []
   );
@@ -61,29 +48,53 @@ export default function Home() {
 
   const upcomingMatches: ScheduleMatch[] = allScheduleMatches.filter(
     (match: ScheduleMatch) => {
+      if (typeof match?.date !== 'string') return false; // Skip if date is invalid
+
       const matchDateParts = match.date.split(" ");
+      if (matchDateParts.length !== 3) return false; // Skip if format is wrong
+
       const matchDay = parseInt(matchDateParts[0], 10);
       const matchMonthString = matchDateParts[1];
       const matchYear = parseInt(matchDateParts[2], 10);
       const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
       const matchMonth = monthNames.indexOf(matchMonthString);
-      const matchDate = new Date(matchYear, matchMonth, matchDay);
-      return matchDate >= currentDate;
+
+      if (isNaN(matchDay) || matchMonth === -1 || isNaN(matchYear)) return false; // Skip if parsing failed
+
+      try {
+        const matchDate = new Date(matchYear, matchMonth, matchDay);
+        // Check if date object is valid
+        return !isNaN(matchDate.getTime()) && matchDate >= currentDate;
+      } catch (e) {
+        console.error("Error creating date object for match:", match, e);
+        return false; // Skip if date creation throws error
+      }
     }
   );
 
-  const displayedUpcomingMatches = upcomingMatches.slice(0, 5); // Limit to 5 for carousel and table
+  // Limit upcoming matches for display
+  const displayedUpcomingMatches = upcomingMatches.slice(0, 5);
 
   return (
     <section className="space-y-8">
       {/* Featured Match Card Component */}
-      <FeaturedMatchCard match={match} matchNotes={matchNotes}/>
-
+      {match ? (
+        <FeaturedMatchCard match={match} matchNotes={matchNotes} />
+      ) : (
+        <div className="p-4 text-center bg-gray-100 rounded-lg shadow">No featured match currently available.</div>
+      )}
       {/* Upcoming Matches Carousel Section */}
-      <UpcomingMatchesCarousel upcomingMatches={displayedUpcomingMatches} />
-
+      {displayedUpcomingMatches.length > 0 ? (
+        <UpcomingMatchesCarousel upcomingMatches={displayedUpcomingMatches} />
+      ) : (
+        <div className="p-4 text-center bg-gray-100 rounded-lg shadow">No upcoming matches to display.</div>
+      )}
       {/* Points Table Section on Home Page */}
-      <PointsTableSection pointsTableData={pointsTableData} />
+      {pointsTableData.length > 0 ? (
+        <PointsTableSection pointsTableData={pointsTableData} />
+      ) : (
+        <div className="p-4 text-center bg-gray-100 rounded-lg shadow">Points table data is currently unavailable.</div>
+      )}
     </section>
   );
 }
