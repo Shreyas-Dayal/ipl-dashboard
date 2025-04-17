@@ -14,7 +14,7 @@ export default function Home() {
   // Function to fetch data from the API
   const fetchData = async () => {
     try {
-      const res = await fetch("http://localhost:3000/api/ipl-data", { cache: "no-store" });
+      const res = await fetch(process.env.NEXT_PUBLIC_API_URL || "/api/ipl-data", { cache: "no-store" });
       console.log("Fetching data from API...");
       const fetchedData: ScrapedDataResponse = await res.json();
       console.log('ScrapedDataResponse', fetchedData);
