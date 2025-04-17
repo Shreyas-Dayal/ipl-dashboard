@@ -10,15 +10,14 @@ export const dynamic = "force-dynamic";
 export default function Home() {
   const { data, loading, error } = useIplStore();
 
+  console.log("Home Page: Data from Zustand Store:", data);
 
   if (loading) {
     return <p>Loading IPL data...</p>;
   }
-
   if (error) {
     return <p>Error loading data: {error}</p>;
   }
-
   if (!data) {
     return <p>No data available at the moment.</p>;
   }
