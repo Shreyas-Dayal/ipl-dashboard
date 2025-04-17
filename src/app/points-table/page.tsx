@@ -1,15 +1,59 @@
-// import Image from "next/image"
+// app/points-table/page.tsx
+"use client"; 
 
-export default async function PointsTable() {
-  const res = await fetch("http://localhost:3000/api/ipl-data")
-  const data: ScrapedDataResponse = await res.json()
-  const table: PointsTableEntry[] = data.pointsTable
+import { useEffect, useState } from "react";
+
+interface PointsTableEntry {
+  TeamID: string;
+  TeamLogo: string;
+  TeamName: string;
+  Matches: number;
+  Wins: number;
+  Loss: number;
+  Tied: number;
+  NoResult: number;
+  Points: number;
+  NetRunRate: string;
+  Performance: string;
+  ForTeams: string;
+  AgainstTeam: string;
+}
+
+const PointsTable = () => {
+  const [pointsTableData, setPointsTableData] = useState<PointsTableEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch data when the component mounts
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await fetch("http://localhost:3000/api/ipl-data");
+        const data = await res.json();
+        setPointsTableData(data.pointsTable || []); // Set the data
+        setLoading(false); // Set loading to false after fetching
+      } catch (error) {
+        setError("Failed to fetch data");
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []); // Empty dependency array to fetch data only on mount
+
+  if (loading) {
+    return <p>Loading points table data...</p>;
+  }
+
+  if (error) {
+    return <p>{error}</p>;
+  }
 
   return (
     <section className="space-y-4">
       <h1 className="text-2xl font-bold mb-4">📊 Points Table</h1>
       <div className="bg-white rounded-lg shadow border overflow-hidden">
-        {table.length === 0 ? (
+        {pointsTableData.length === 0 ? (
           <div className="p-4">No points table data available.</div>
         ) : (
           <div className="overflow-x-auto">
@@ -31,28 +75,25 @@ export default async function PointsTable() {
                 </tr>
               </thead>
               <tbody>
-                {table.map((team, index) => ( // Using index for position as 'OrderNo' might be string
-                  <tr key={team.TeamID} className={`border-b ${index <= 3 ? "bg-blue-50" : ""}`}> {/* Highlight top 4 using index */}
-                    <td className="p-3 text-center font-medium">{index + 1}</td> {/* Position from index */}
+                {pointsTableData.map((team, index) => (
+                  <tr key={team.TeamID} className={`border-b ${index <= 3 ? "bg-blue-50" : ""}`}>
+                    <td className="p-3 text-center font-medium">{index + 1}</td>
                     <td className="p-3 flex items-center">
                       <div className="w-6 h-6 rounded-full bg-gray-200 mr-2">
-                        {/* Team Logo */}
-                        <img src={team.TeamLogo} alt={team.TeamName} className="w-6 h-6 rounded-full"/>
-                        {/* <Image src={team.TeamLogo} alt={team.TeamName} width={24} height={24} className="rounded-full"/>  */}
-                        {/* Team Logo */}
+                        <img src={team.TeamLogo} alt={team.TeamName} className="w-6 h-6 rounded-full" />
                       </div>
                       {team.TeamName}
                     </td>
-                    <td className="p-3 text-center">{team.Matches}</td>     {/* Matches Played */}
-                    <td className="p-3 text-center">{team.Wins}</td>        {/* Wins */}
-                    <td className="p-3 text-center">{team.Loss}</td>        {/* Losses */}
-                    <td className="p-3 text-center">{team.Tied}</td>        {/* Tied Matches */}
-                    <td className="p-3 text-center">{team.NoResult}</td>    {/* No Result Matches */}
-                    <td className="p-3 text-center">{team.ForTeams?.split('/')[0] || '-'}</td>     {/* Runs Scored For */}
-                    <td className="p-3 text-center">{team.AgainstTeam?.split('/')[0] || '-'}</td> {/* Runs Scored Against */}
-                    <td className="p-3 text-center font-bold">{team.Points}</td>{/* Points */}
-                    <td className="p-3 text-center">{team.NetRunRate}</td>    {/* NRR */}
-                    <td className="p-3 text-center flex justify-center space-x-1">{/* Performance/Form - Badges */}
+                    <td className="p-3 text-center">{team.Matches}</td>
+                    <td className="p-3 text-center">{team.Wins}</td>
+                    <td className="p-3 text-center">{team.Loss}</td>
+                    <td className="p-3 text-center">{team.Tied}</td>
+                    <td className="p-3 text-center">{team.NoResult}</td>
+                    <td className="p-3 text-center">{team.ForTeams?.split('/')[0] || '-'}</td>
+                    <td className="p-3 text-center">{team.AgainstTeam?.split('/')[0] || '-'}</td>
+                    <td className="p-3 text-center font-bold">{team.Points}</td>
+                    <td className="p-3 text-center">{team.NetRunRate}</td>
+                    <td className="p-3 text-center flex justify-center space-x-1">
                       {team.Performance?.split(',').map((result, resultIndex) => {
                         let bgColorClass = '';
                         let textColorClass = 'text-white';
@@ -66,10 +107,13 @@ export default async function PointsTable() {
                           bgColorClass = 'bg-yellow-500';
                           textColorClass = 'text-gray-700';
                         } else {
-                          return null; // Skip unknown results
+                          return null;
                         }
                         return (
-                          <span key={resultIndex} className={`inline-flex items-center justify-center w-5 h-5 rounded-full ${bgColorClass} ${textColorClass} font-bold text-xs`}>
+                          <span
+                            key={resultIndex}
+                            className={`inline-flex items-center justify-center w-5 h-5 rounded-full ${bgColorClass} ${textColorClass} font-bold text-xs`}
+                          >
                             {result}
                           </span>
                         );
@@ -83,5 +127,7 @@ export default async function PointsTable() {
         )}
       </div>
     </section>
-  )
-}
+  );
+};
+
+export default PointsTable;
