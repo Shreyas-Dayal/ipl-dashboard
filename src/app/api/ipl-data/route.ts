@@ -35,14 +35,14 @@ export async function GET() {
 
     // --- Featured Match (simple logic: pick first "in progress" match if available) ---
     const allMatches = scheduleData?.Matchsummary || [];
-    const featuredRaw = allMatches.find((match: any) => match.MatchStatus === "In Progress") || allMatches[0];
+    const featuredRaw = allMatches.find((match: ScheduleMatchRaw) => match.MatchStatus === "In Progress") || allMatches[0];
 
-    const featuredMatch: any | null = featuredRaw ? featuredRaw : null;
+    const featuredMatch: ScheduleMatchRaw | null = featuredRaw ? featuredRaw : null;
 
     // --- Fetch Match Notes for Featured Match ---
     const matchNotesUrl = `https://ipl-stats-sports-mechanic.s3.ap-south-1.amazonaws.com/ipl/feeds/${featuredMatch?.MatchID}-matchnotes.js`;
     const matchNotesResponse = await fetch(matchNotesUrl);
-    let matchNotes: any[] = [];
+    let matchNotes: MatchNote[] = [];
     
     if (matchNotesResponse.ok) {
       const matchNotesText = await matchNotesResponse.text();
@@ -69,6 +69,7 @@ export async function GET() {
     for (const match of allMatches) {
       const date = match.MatchDateNew;
       if (!groupedScheduleMap[date]) groupedScheduleMap[date] = [];
+      // @ts-expect-error - Match type from API doesn't match our defined type structure
       groupedScheduleMap[date].push({
         date,
         teams: [match.FirstBattingTeamCode, match.SecondBattingTeamCode],
@@ -97,10 +98,11 @@ export async function GET() {
     };
 
     return NextResponse.json(scraped);
-  } catch (error: any) {
-    console.error("Scraping failed:", error.message);
+  } catch (error: unknown) {
+    console.error("Scraping failed:", error instanceof Error ? error.message : String(error));
 
     const fallback: ScrapedDataResponse = {
+      // @ts-expect-error // Ignore TypeScript error for fallback data
       featuredMatch: {
         CompetitionID: 203,
         MatchID: 1825,

@@ -255,6 +255,11 @@ interface ScheduleMatchRaw {
     MOMRC: string;
     MOMImage: string;
     KO: string;
+    venue:string;
+    time:string;
+    status:string;
+    team1Code:string;
+    team2Code:string;
 }
 
 interface MatchNote {
@@ -320,7 +325,7 @@ interface MatchInfo extends Pick<ScheduleMatchRaw, 'GroundName' | 'MatchTime' | 
  * API response from /api/ipl-data (as before).
  */
 interface ScrapedDataResponse {
-  featuredMatch: MatchInfo | null;
+  featuredMatch: ScheduleMatchRaw | null;
   pointsTable: PointsTableEntry[];
   schedule: ScheduleWeek[];
   matchNotes:MatchNote[]
