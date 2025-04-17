@@ -58,7 +58,7 @@ ipl-dashboard/
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/yourusername/ipl-dashboard.git
+   git clone https://github.com/Shreyas-Dayal/ipl-dashboard.git
    cd ipl-dashboard
    ```
 
