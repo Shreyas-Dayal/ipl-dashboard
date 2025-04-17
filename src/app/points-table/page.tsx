@@ -33,7 +33,7 @@ const PointsTable = () => {
         setPointsTableData(data.pointsTable || []); // Set the data
         setLoading(false); // Set loading to false after fetching
       } catch (error) {
-        setError("Failed to fetch data");
+        setError("Failed to fetch data: " + (error instanceof Error ? error.message : String(error)));
         setLoading(false);
       }
     };
