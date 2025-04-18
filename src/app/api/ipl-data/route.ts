@@ -1,4 +1,3 @@
-// app/api/ipl-data/route.ts
 import { NextResponse } from "next/server";
 
 export async function GET() {
@@ -53,7 +52,6 @@ export async function GET() {
           const jsonString = matchNotesText.substring(matchNotesText.indexOf('['), matchNotesText.lastIndexOf(']') + 1);
           matchNotes = JSON.parse(jsonString);
         } else {
-          // If it's not wrapped, directly parse the JSON
           matchNotes = JSON.parse(matchNotesText);
         }
       } catch (err) {
@@ -66,21 +64,24 @@ export async function GET() {
 
     // --- Group Schedule by Date ---
     const groupedScheduleMap: { [date: string]: ScheduleWeek["matches"] } = {};
-    for (const match of allMatches) {
+    for (const match of allMatches) { // 'match' here is of type ScheduleMatchRaw
       const date = match.MatchDateNew;
       if (!groupedScheduleMap[date]) groupedScheduleMap[date] = [];
+
       // @ts-expect-error - Match type from API doesn't match our defined type structure
       groupedScheduleMap[date].push({
-        date,
-        teams: [match.FirstBattingTeamCode, match.SecondBattingTeamCode],
+        date, 
+        teams: [match.FirstBattingTeamName, match.SecondBattingTeamName], 
         time: match.MatchTime,
         venue: match.GroundName,
-        matchStatus: match.MatchStatus, // Added matchStatus
-        matchName: match.MatchName, // Added matchName
-        team1Code: match.FirstBattingTeamCode, // Added team1Code
-        team2Code: match.SecondBattingTeamCode, // Added team2Code
-        team1Logo: match.MatchHomeTeamLogo, // Added team1Logo
-        team2Logo: match.MatchAwayTeamLogo, // Added team2Logo
+        matchStatus: match.MatchStatus,
+        matchName: match.MatchName,
+        team1Code: match.FirstBattingTeamCode,
+        team2Code: match.SecondBattingTeamCode,
+        team1Logo: match.MatchHomeTeamLogo,
+        team2Logo: match.MatchAwayTeamLogo,
+        matchId: match.MatchID, 
+        matchNumber: match.MatchOrder ? parseInt(match.MatchOrder, 10) : undefined,
       });
     }
 
@@ -94,7 +95,7 @@ export async function GET() {
       featuredMatch,
       pointsTable,
       schedule,
-      matchNotes,  // Added match notes to the response
+      matchNotes,
     };
 
     return NextResponse.json(scraped);

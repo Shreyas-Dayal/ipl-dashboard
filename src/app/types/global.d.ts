@@ -289,6 +289,7 @@ interface ScheduleMatch extends Pick<ScheduleMatchRaw, 'MatchDateNew' | 'MatchTi
   team2Code: string;
   team1Logo: string;
   team2Logo: string;
+  matchId: number | string; 
   matchNumber?: number;
 }
 
@@ -331,3 +332,101 @@ interface ScrapedDataResponse {
   matchNotes:MatchNote[]
 }
 
+
+
+// src/app/types/match-details.d.ts (or global.d.ts)
+
+interface BattingCardEntry {
+  MatchID: number;
+  InningsNo: number;
+  TeamID: number;
+  PlayerID: string;
+  PlayerName: string;
+  PlayerImage?: string; // Optional
+  PlayingOrder?: number; // Optional
+  BowlerName?: string; // If out
+  OutDesc?: string; // Description of dismissal
+  ShortOutDesc?: string; // Short description
+  Runs: number;
+  Balls: number;
+  DotBalls?: number;
+  Ones?: number;
+  Twos?: number;
+  Threes?: number;
+  Fours: number;
+  Sixes: number;
+  StrikeRate: string; // Often provided as string
+  WicketNo?: string; // Optional
+  // ... other fields if needed
+}
+
+interface BowlingCardEntry {
+  MatchID: number;
+  InningsNo: number;
+  TeamID: number;
+  PlayerID: string;
+  PlayerName: string;
+  PlayerShortName?: string;
+  PlayerImage?: string;
+  Overs: number; // Can be decimal like 3.5
+  Maidens: number;
+  Runs: number;
+  Wickets: number;
+  Wides?: number;
+  NoBalls?: number;
+  Economy: number | string; // API might return string or number
+  BowlingOrder?: number;
+  // ... other fields if needed
+}
+
+interface ExtrasInfo {
+  MatchID: string; // API shows string here
+  InningsNo: number;
+  TeamID: string; // API shows string here
+  Total: string; // e.g., "162/5 (20.0 Overs)"
+  TotalExtras: string; // As string
+  Byes?: string;
+  LegByes?: string;
+  NoBalls?: string;
+  Wides?: string;
+  Penalty?: string;
+  CurrentRunRate?: string; // May not be relevant post-match
+  BattingTeamName: string;
+  BowlingTeamName: string;
+  // ... other fields if needed
+}
+
+interface FallOfWicketEntry {
+  MatchID: string; // API shows string here
+  InningsNo: number;
+  TeamID: string; // API shows string here
+  PlayerID: string;
+  PlayerName: string;
+  Score: string; // e.g., "59/1(7.3)"
+  FallScore: string; // As string
+  FallWickets: number;
+  FallOvers: string; // As string
+}
+
+// Structure for the data within the "Innings1" or "Innings2" key
+interface InningsData {
+  BattingCard: BattingCardEntry[];
+  Extras: ExtrasInfo[]; // It's an array in the example, usually just one entry
+  FallOfWickets: FallOfWicketEntry[];
+  BowlingCard: BowlingCardEntry[];
+  // Add other keys like ManhattanGraph, OverHistory etc. if you plan to use them
+}
+
+// Structure of the parsed JSON response
+interface MatchInningsApiResponse {
+  Innings1?: InningsData;
+  Innings2?: InningsData;
+}
+
+// Structure combining both innings for the page component
+interface MatchDetailData {
+    matchId: string;
+    innings1: InningsData | null;
+    innings2: InningsData | null;
+    matchSummary?: ScheduleMatchRaw | null; // Optional: Add overall summary later
+}
