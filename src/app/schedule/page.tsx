@@ -1,13 +1,95 @@
 "use client";
 
+import { useState, useMemo } from 'react'; 
 import { useIplStore } from '@/store/iplStore';
 import { MatchCard } from './matchCard';
 
+type MatchStatusFilter = 'All' | 'Live' | 'Upcoming' | 'Completed';
+
 const Schedule = () => {
-  // Get data, loading, and error state from the Zustand 
   const scrapedData = useIplStore((state) => state.data);
   const loading = useIplStore((state) => state.loading);
   const error = useIplStore((state) => state.error);
+
+  const [filter, setFilter] = useState<MatchStatusFilter>('Upcoming');
+
+  const allMatches = useMemo(() => {
+    if (!scrapedData?.schedule) return [];
+    return scrapedData.schedule.reduce((acc: ScheduleMatch[], week: ScheduleWeek) => {
+        if (Array.isArray(week.matches)) {
+            const matchesWithWeekDate = week.matches.map(match => ({ ...match, weekDate: week.date }));
+            return acc.concat(matchesWithWeekDate);
+        }
+        return acc;
+    }, []);
+  }, [scrapedData?.schedule]);
+
+
+  const filteredMatches = useMemo(() => {
+    const currentDate = new Date();
+    currentDate.setHours(0, 0, 0, 0);
+
+    return allMatches.filter(match => {
+      if (filter === 'All') return true;
+
+      let matchDate: Date | null = null;
+      if (typeof match.date === 'string') {
+          const parts = match.date.split(" ");
+          if (parts.length === 3) {
+              const day = parseInt(parts[0], 10);
+              const monthStr = parts[1];
+              const year = parseInt(parts[2], 10);
+              const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+              const month = monthNames.indexOf(monthStr);
+              if (!isNaN(day) && month !== -1 && !isNaN(year)) {
+                  try { matchDate = new Date(year, month, day); } catch {/* ignore */}
+              }
+          }
+      }
+
+      const isUpcoming = matchDate && matchDate >= currentDate;
+      // const isCompleted = match.matchStatus === 'Post' || (matchDate && matchDate < currentDate && match.matchStatus !== 'Live' && match.matchStatus !== 'Scheduled'); // Basic heuristic for completed
+
+
+      switch (filter) {
+        case 'Live':
+          // Assuming 'In Progress' or 'Live' signifies live
+          return match.matchStatus === 'Live' || match.matchStatus === 'In Progress';
+        case 'Upcoming':
+          // Scheduled status OR future date and not live/completed
+          return match.matchStatus === 'Scheduled' || (isUpcoming && match.matchStatus !== 'Live' && match.matchStatus !== 'In Progress' && match.matchStatus !== 'Post');
+        case 'Completed':
+           // 'Post' status OR a past date (and not live)
+           return match.matchStatus === 'Post' || (matchDate && matchDate < currentDate && match.matchStatus !== 'Live' && match.matchStatus !== 'In Progress');
+        default:
+          return true;
+      }
+    });
+  }, [allMatches, filter]);
+
+  type ScheduleMatchWithWeek = ScheduleMatch & { weekDate?: string };
+
+  const groupedFilteredMatches = useMemo(() => {
+    const groups: { [date: string]: ScheduleMatch[] } = {};
+    filteredMatches.forEach(match => {
+        const weekDate = (match as ScheduleMatchWithWeek).weekDate || match.date; // Use weekDate or fallback to match.date
+        if (!groups[weekDate]) {
+            groups[weekDate] = [];
+        }
+        groups[weekDate].push(match);
+    });
+    return Object.entries(groups)
+           .sort(([dateA], [dateB]) => {
+                try {
+                    // Rudimentary date sort - implement robustly if needed
+                    return new Date(dateA).getTime() - new Date(dateB).getTime();
+                } catch {
+                    return 0;
+                }
+           })
+           .map(([date, matches]) => ({ date, matches }));
+  }, [filteredMatches]);
+
 
   if (loading) {
     return <p>Loading schedule data...</p>;
@@ -17,7 +99,7 @@ const Schedule = () => {
     return <p>Error loading data: {error}</p>;
   }
 
-  if (!scrapedData || !scrapedData.schedule || scrapedData.schedule.length === 0) {
+  if (!scrapedData?.schedule || allMatches.length === 0) {
     return (
       <div className="p-10 text-center">
         <p className="text-gray-500 text-lg">No schedule data available at the moment.</p>
@@ -25,104 +107,54 @@ const Schedule = () => {
     )
   }
 
-  const scheduleData = scrapedData.schedule;
-  const currentDate = new Date();
-  currentDate.setHours(0, 0, 0, 0);
 
-  const upcomingWeeks: ScheduleWeek[] = [];
-  const completedWeeks: ScheduleWeek[] = [];
-
-  scheduleData.forEach(week => {
-    const upcomingMatchesInWeek: ScheduleMatch[] = [];
-    const completedMatchesInWeek: ScheduleMatch[] = [];
-
-    week.matches.forEach((match) => {
-      const matchDateParts = match.date.split(" ");
-      const matchDay = parseInt(matchDateParts[0], 10);
-      const matchMonthString = matchDateParts[1];
-      const matchYear = parseInt(matchDateParts[2], 10);
-      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-      const matchMonth = monthNames.indexOf(matchMonthString);
-
-      const matchDate = new Date(matchYear, matchMonth, matchDay);
-
-      if (matchDate >= currentDate) {
-        upcomingMatchesInWeek.push(match);
-      } else {
-        completedMatchesInWeek.push(match);
-      }
-    })
-
-
-    if (upcomingMatchesInWeek.length > 0) {
-      upcomingWeeks.push({ date: week.date, matches: upcomingMatchesInWeek });
+  const getFilterButtonClass = (buttonFilter: MatchStatusFilter) => {
+    const baseClass = "py-2 px-4 rounded-lg text-sm font-medium transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-opacity-50";
+    if (filter === buttonFilter) {
+      return `${baseClass} bg-blue-600 text-white focus:ring-blue-400`;
     }
-    if (completedMatchesInWeek.length > 0) {
-      completedWeeks.push({ date: week.date, matches: completedMatchesInWeek });
-    }
-  });
+    return `${baseClass} bg-gray-200 text-gray-700 hover:bg-gray-300 focus:ring-gray-400`;
+  };
 
 
   return (
-    <section className="container mx-auto py-12 px-6 md:px-8 lg:px-12 space-y-10">
+    <section className="container mx-auto py-12 px-4 sm:px-6 lg:px-8 space-y-10">
       <header className="text-center mb-8 md:mb-12">
         <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
           IPL Match Schedule
         </h1>
         <p className="text-gray-600 text-lg md:text-xl">
-          Get ready for the excitement! Here&apos;s the schedule for upcoming and completed matches.
+          Browse upcoming, live, and completed matches.
         </p>
       </header>
 
+      {/* Filter Controls */}
+      <div className="flex justify-center space-x-2 sm:space-x-4 mb-8 flex-wrap gap-2">
+        <button className={getFilterButtonClass('All')} onClick={() => setFilter('All')}>All</button>
+        <button className={getFilterButtonClass('Upcoming')} onClick={() => setFilter('Upcoming')}>Upcoming</button>
+        <button className={getFilterButtonClass('Live')} onClick={() => setFilter('Live')}>Live</button>
+        <button className={getFilterButtonClass('Completed')} onClick={() => setFilter('Completed')}>Completed</button>
+      </div>
+
+
       <div className="bg-white rounded-xl shadow-md overflow-hidden">
         <div className="divide-y divide-gray-200">
-          {upcomingWeeks.length > 0 && (
-            <div className="py-8 px-6 md:px-8">
-              {/* ... upcoming matches rendering ... */}
-              <h2 className="text-xl md:text-2xl font-semibold text-indigo-700 mb-6">
-                <i className="far fa-calendar-alt mr-2"></i> Upcoming Matches
-              </h2>
-              <div className="space-y-8">
-                {upcomingWeeks.map((week, weekIndex) => (
-                  <div key={`upcoming-week-${weekIndex}`} className="mb-6">
-                    <h3 className="font-medium text-gray-700 mb-3 px-3 py-1.5 bg-gray-100 rounded-md inline-block text-base md:text-lg">
-                      <i className="far fa-calendar-week mr-2"></i> {week.date}
-                    </h3>
-                    <div className="space-y-8 mt-6">
-                      {week.matches.map((match, matchIndex) => (
-                        <MatchCard key={`upcoming-match-${matchIndex}`} match={match} index={matchIndex} />
-                      ))}
-                    </div>
-                  </div>
-                ))}
+          {groupedFilteredMatches.length > 0 ? (
+            groupedFilteredMatches.map((week, weekIndex) => (
+              <div key={`filtered-week-${week.date}-${weekIndex}`} className="py-8 px-4 sm:px-6 md:px-8">
+                <h3 className="font-medium text-gray-700 mb-3 px-3 py-1.5 bg-gray-100 rounded-md inline-block text-base md:text-lg">
+                  <i className="far fa-calendar-week mr-2"></i> {week.date}
+                </h3>
+                <div className="space-y-8 mt-6">
+                  {week.matches.map((match, matchIndex) => (
+                    <MatchCard key={match.matchId || `filtered-match-${matchIndex}`} match={match} index={matchIndex} />
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
-          {completedWeeks.length > 0 && (
-            <div className="py-8 px-6 md:px-8">
-              {/* ... completed matches rendering ... */}
-              <h2 className="text-xl md:text-2xl font-semibold text-green-700 mb-6">
-                <i className="fas fa-history mr-2"></i> Completed Matches
-              </h2>
-              <div className="space-y-8">
-                {completedWeeks.map((week, weekIndex) => (
-                  <div key={`completed-week-${weekIndex}`} className="mb-6">
-                    <h3 className="font-medium text-gray-700 mb-3 px-3 py-1.5 bg-gray-100 rounded-md inline-block text-base md:text-lg">
-                      <i className="far fa-calendar-week mr-2"></i> {week.date}
-                    </h3>
-                    <div className="space-y-8 mt-6">
-                      {week.matches.map((match, matchIndex) => (
-                        <MatchCard key={`completed-match-${matchIndex}`} match={match} index={matchIndex} />
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-          {upcomingWeeks.length === 0 && completedWeeks.length === 0 && ( // Handle case where data exists but no matches fit criteria
+            ))
+          ) : (
             <div className="p-10 text-center">
-              <p className="text-gray-500 text-lg">No upcoming or completed matches found based on the current date.</p>
+              <p className="text-gray-500 text-lg">No matches found for the selected filter: <span className="font-semibold">{filter}</span>.</p>
             </div>
           )}
         </div>
