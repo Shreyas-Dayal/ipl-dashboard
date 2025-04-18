@@ -1,9 +1,3 @@
-The README file you provided is already well-structured and informative, but I will make some improvements for clarity, consistency, and conciseness, while ensuring it adheres to best practices for documentation.
-
-Here is the improved version:
-
----
-
 # IPL Dashboard 2025
 
 A modern dashboard application for tracking the **Indian Premier League (IPL) 2025** cricket tournament. Built with **Next.js**, **React**, **Zustand**, and **TypeScript**.
