@@ -11,7 +11,7 @@ const Schedule = () => {
   const loading = useIplStore((state) => state.loading);
   const error = useIplStore((state) => state.error);
 
-  const [filter, setFilter] = useState<MatchStatusFilter>('Upcoming');
+  const [filter, setFilter] = useState<MatchStatusFilter>('All');
 
   const allMatches = useMemo(() => {
     if (!scrapedData?.schedule) return [];

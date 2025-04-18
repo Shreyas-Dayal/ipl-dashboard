@@ -1,5 +1,6 @@
 "use client"; // Add this line at the top of the file
 
+import Link from 'next/link';
 // components/FeaturedMatchCard.tsx
 import React, { useState } from 'react';
 
@@ -77,7 +78,15 @@ const FeaturedMatchCard: React.FC<FeaturedMatchCardProps> = ({ match, matchNotes
                 <MatchStatusBadge matchStatus={match.MatchStatus} matchTime={match.MatchTime} />
 
                 <div className="p-4 md:p-6">
-                    <h3 className="text-lg font-semibold text-center mb-4">{match.MatchName}</h3>
+                    <Link href={`/match/${match.MatchID}`} className="text-blue-500 hover:text-blue-700 text-sm font-medium flex items-center justify-self-end">
+                        Match Details
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                    </Link>
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-semibold text-center flex-grow">{match.MatchName}</h3>
+                    </div>
                     <p className="text-center text-sm text-gray-500 mb-2">{match.MatchType}</p>
                     <div className="flex flex-col md:flex-row items-center justify-between gap-6">
                         <div className="flex flex-1 flex-col items-center text-center">
