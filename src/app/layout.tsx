@@ -1,11 +1,13 @@
-import Link from "next/link";
-import "./globals.css";
+// src/app/layout.tsx
+import "./globals.css"; // Keep globals.css import
 import type { Metadata } from "next";
-import { IplDataInitializer } from "./utilities/IplDataInitializer";
-import { MatchNoteNotifier } from "./utilities/MatchNoteNotifier";
+import { AppHeader } from "./components/AppHeader"; // Import the new header component
+import { IplDataInitializer } from "./utilities/IplDataInitializer"; // Adjust path if needed
+import { MatchNoteNotifier } from "./utilities/MatchNoteNotifier"; // Adjust path if needed
 import { ToastContainer } from "react-toastify";
-import Image from "next/image";
+import 'react-toastify/dist/ReactToastify.css'; // Import toastify CSS
 
+// Metadata remains the same
 export const metadata: Metadata = {
   title: "IPL 2025 Dashboard",
   description: "Live IPL info, points, and match schedule",
@@ -15,34 +17,37 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <head>
-        <link rel="icon" href="/IPL.png" />
+        {/* Favicon link should be relative to the public directory */}
+        <link rel="icon" href="/IPL.png" sizes="any" /> {/* Added sizes="any" */}
       </head>
       <body className="bg-gray-50 text-gray-900 font-sans leading-relaxed">
+        {/* Keep these utility components */}
         <IplDataInitializer />
-        <MatchNoteNotifier /> 
-        <ToastContainer />
-        <header className="sticky top-0 z-10 bg-blue-600 text-white shadow-lg">
-          <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-            <h1 className="text-2xl font-extrabold text-white md:text-3xl flex items-center gap-2">
-               <Image src="/IPL.png" alt="IPL Logo" width={80} height={80} style={{marginRight:'1rem'}}/>
-               IPL 2025 Dashboard
-            </h1>
-            <nav className="hidden md:flex space-x-6">
-              <Link href="/" className="text-white hover:text-blue-300 transition duration-300">Home</Link>
-              <Link href="/schedule" className="text-white hover:text-blue-300 transition duration-300">Schedule</Link>
-              <Link href="/points-table" className="text-white hover:text-blue-300 transition duration-300">Points Table</Link>
-            </nav>
-          </div>
-        </header>
+        <MatchNoteNotifier />
+        <ToastContainer
+            position="top-right"
+            autoClose={5000}
+            hideProgressBar={false}
+            newestOnTop={true}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="light"
+        />
 
-        <main className="container mx-auto px-6 py-8 space-y-8">
+        {/* Use the new AppHeader component */}
+        <AppHeader />
+
+        <main className="container mx-auto px-4 sm:px-6 py-8 space-y-8">
           {children}
-
-          {/* Footer Placeholder */}
-          {/* <footer className="py-4 text-center text-gray-600 text-sm">
-            <p>© 2025 IPL Dashboard. All Rights Reserved. By Shreyas</p>
-          </footer> */}
         </main>
+
+        {/* Optional Footer */}
+        {/* <footer className="py-4 text-center text-gray-600 text-sm mt-auto">
+            <p>© {new Date().getFullYear()} IPL Dashboard.</p>
+        </footer> */}
       </body>
     </html>
   );
