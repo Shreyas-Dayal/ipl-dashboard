@@ -1,5 +1,6 @@
 "use client";
 
+
 import { useEffect, useRef } from 'react';
 import { useIplStore } from '@/store/iplStore'; // Adjust path
 import { toast } from 'react-toastify';
@@ -12,9 +13,21 @@ export function MatchNoteNotifier() {
   const matchNotes = useIplStore((state) => state.data?.matchNotes);
   const permission = useIplStore((state) => state.notificationPermission);
   const isLoading = useIplStore((state) => state.loading);
+  const requestNotificationPermission = useIplStore((state) => state.requestNotificationPermission);
 
   const previousNoteIdsRef = useRef<Set<string>>(new Set());
   const initialLoadComplete = useRef<boolean>(false);
+
+  useEffect(() => {
+    // Ensure this is running on the client side
+    if (typeof window !== 'undefined') {
+      // Request notification permission if it's not already granted or denied
+      if (permission === 'default') {
+        console.log('Requesting notification permission...');
+        requestNotificationPermission();
+      }
+    }
+  }, [permission, requestNotificationPermission]);
 
   useEffect(() => {
     if (!isLoading && !initialLoadComplete.current) {
@@ -46,7 +59,7 @@ export function MatchNoteNotifier() {
       }
     });
 
-    //  Trigger notifications only if new notes exist on an UPDATE 
+    // Trigger notifications only if new notes exist on an UPDATE 
     if (newNotes.length > 0) {
       console.log(`MatchNoteNotifier: Found ${newNotes.length} new notes on update.`);
       const isTabHidden = typeof document !== 'undefined' && document.hidden;
@@ -66,8 +79,8 @@ export function MatchNoteNotifier() {
           toast.info(message, { toastId: noteId });
         }, index * 200);
 
-        // Show browser notification
-        if (permission === 'granted' && isTabHidden) {
+        // Show browser notification (ensure it's run on the client side)
+        if (permission === 'granted' && isTabHidden && typeof window !== 'undefined') {
            console.log(`MatchNoteNotifier: Sending browser notification for ${noteId} (update)`);
            try {
               new Notification(title, {
