@@ -59,51 +59,51 @@ Direct scraping of `iplt20.com` was not implemented due to potential complexitie
 
 ```
 ipl-dashboard/
-├── src/
-│ ├── app/ # App Router structure
-│ │ ├── api/ # API routes
-│ │ │ └── ipl-data/
-│ │ │ route.ts # Endpoint fetching external summary data
-│ │ ├── components/ # Reusable UI components
-│ │ │ │ AppHeader.tsx
-│ │ │ │ BattingScorecard.tsx
-│ │ │ │ BowlingScorecard.tsx
-│ │ │ │ FeaturedMatchCard.tsx
-│ │ │ │ LoadingSpinner.tsx
-│ │ │ │ PointsTableSection.tsx
-│ │ │ │ UpcomingMatchesCarousel.tsx
-│ │ │ └───charts/ # Chart-specific components
-│ │ │ ManhattanChart.tsx
-│ │ │ WagonWheelChart.tsx
-│ │ ├── match/ # Match detail route
-│ │ │ └── [matchId]/
-│ │ │ page.tsx # Server component fetching match details
-│ │ ├── points-table/ # Points table page
-│ │ │ page.tsx # Client component consumes store
-│ │ ├── schedule/ # Schedule page
-│ │ │ matchCard.tsx # Component for schedule items
-│ │ │ page.tsx # Client component consumes store, filters matches
-│ │ ├── types/ # Shared TypeScript types
-│ │ │ global.d.ts # Contains ScheduleMatch, PointsTable etc.
-│ │ │ match-details.d.ts # Contains types for scorecards/charts
-│ │ ├── utilities/ # App-level client components/hooks
-│ │ │ IplDataInitializer.tsx # Triggers store polling
-│ │ │ MatchNoteNotifier.tsx # Handles notification logic
-│ │ ├── globals.css # Global styles
-│ │ ├── layout.tsx # Root layout (includes Initializer, Notifier, Header, ToastContainer)
-│ │ └── page.tsx # Home page (Client component consumes store)
-│ ├── lib/ # Shared utilities/functions (outside app folder)
-│ │ └── fetchMatchDetails.ts # Function to fetch detailed innings data
-│ └── store/ # Zustand store definition (outside app folder)
-│ └── iplStore.ts # Contains global state, actions, summary data fetching trigger
-├── public/ # Static assets (e.g., icons, images)
-│ └── IPL.png
-│ └── icon-192x192.png # Example notification icon
-├── next.config.js # Next.js configuration (incl. Image remotePatterns)
-├── .eslintrc.json # ESLint configuration (or eslint.config.mjs)
-├── tailwind.config.ts # Tailwind CSS configuration
-├── tsconfig.json # TypeScript configuration
-└── package.json # Project dependencies
+├── src/                              # App code
+│ ├── app/                            # App Router structure
+│ │ ├── api/                         # API routes
+│ │ │ └── ipl-data/                  # Endpoint fetching external summary data
+│ │ │     └── route.ts               # API route for fetching IPL data
+│ │ ├── components/                  # Reusable UI components
+│ │ │ ├── AppHeader.tsx              # Header component for the app
+│ │ │ ├── BattingScorecard.tsx       # Batting scorecard component
+│ │ │ ├── BowlingScorecard.tsx       # Bowling scorecard component
+│ │ │ ├── FeaturedMatchCard.tsx      # Featured match card component
+│ │ │ ├── LoadingSpinner.tsx         # Spinner to show loading state
+│ │ │ ├── PointsTableSection.tsx     # Section displaying points table
+│ │ │ ├── UpcomingMatchesCarousel.tsx # Carousel showing upcoming matches
+│ │ │ └── charts/                    # Chart-specific components
+│ │ │     ├── ManhattanChart.tsx     # Manhattan chart component
+│ │ │     └── WagonWheelChart.tsx    # Wagon wheel chart component
+│ │ ├── match/                       # Match detail route
+│ │ │ └── [matchId]/                 # Dynamic route for match details
+│ │ │     └── page.tsx              # Server component fetching match details
+│ │ ├── points-table/                # Points table page
+│ │ │ └── page.tsx                   # Client component that consumes store
+│ │ ├── schedule/                    # Schedule page
+│ │ │ ├── matchCard.tsx              # Component for displaying schedule items
+│ │ │ └── page.tsx                   # Client component that consumes store, filters matches
+│ │ ├── types/                       # Shared TypeScript types
+│ │ │ ├── global.d.ts                # Contains ScheduleMatch, PointsTable types, etc.
+│ │ │ └── match-details.d.ts         # Contains types for scorecards/charts
+│ │ ├── utilities/                   # App-level client components/hooks
+│ │ │ ├── IplDataInitializer.tsx     # Component that triggers store polling
+│ │ │ └── MatchNoteNotifier.tsx      # Component that handles notification logic
+│ │ ├── globals.css                  # Global styles for the app
+│ │ ├── layout.tsx                   # Root layout (includes Initializer, Notifier, Header, ToastContainer)
+│ │ └── page.tsx                     # Home page (Client component that consumes store)
+│ ├── lib/                           # Shared utilities/functions (outside app folder)
+│ │ └── fetchMatchDetails.ts         # Function to fetch detailed innings data
+│ └── store/                         # Zustand store definition (outside app folder)
+│     └── iplStore.ts                # Contains global state, actions, summary data fetching trigger
+├── public/                          # Static assets (e.g., icons, images)
+│ ├── IPL.png                        # Main icon for the app
+│ └── icon-192x192.png               # Example notification icon
+├── next.config.js                   # Next.js configuration (incl. Image remotePatterns)
+├── .eslintrc.json                   # ESLint configuration (or eslint.config.mjs)
+├── tailwind.config.ts               # Tailwind CSS configuration
+├── tsconfig.json                    # TypeScript configuration
+└── package.json                     # Project dependencies
 ```
 
 ## Getting Started
@@ -267,4 +267,4 @@ This project is licensed under the **MIT License**.
 
 ### Author
 
-Created by [Shreyas](https://github.com/shreyas).
+Created by [Shreyas](https://github.com/Shreyas-Dayal).
