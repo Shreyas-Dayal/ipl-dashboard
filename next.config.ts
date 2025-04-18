@@ -11,6 +11,13 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // Add the compiler option to remove console logs except errors
+  compiler: {
+    removeConsole: {
+      exclude: ['error'],
+    },
+  },
+  
 };
 
 export default nextConfig;
