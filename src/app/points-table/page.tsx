@@ -2,6 +2,7 @@
 
 import { useIplStore } from '@/store/iplStore';
 import Image from 'next/image';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const PointsTable = () => {
   // Get data, loading, and error state from the Zustand
@@ -12,7 +13,7 @@ const PointsTable = () => {
   const pointsTableData = scrapedData?.pointsTable || [];
 
   if (loading) {
-    return <p>Loading points table data...</p>;
+    return <LoadingSpinner />
   }
 
   if (error) {

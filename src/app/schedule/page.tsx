@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react'; 
 import { useIplStore } from '@/store/iplStore';
 import { MatchCard } from './matchCard';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 type MatchStatusFilter = 'All' | 'Live' | 'Upcoming' | 'Completed';
 
@@ -92,7 +93,7 @@ const Schedule = () => {
 
 
   if (loading) {
-    return <p>Loading schedule data...</p>;
+    return <LoadingSpinner />
   }
 
   if (error) {
