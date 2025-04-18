@@ -4,6 +4,7 @@ import { useIplStore } from '@/store/iplStore';
 import FeaturedMatchCard from "./components/FeaturedMatchCard";
 import UpcomingMatchesCarousel from './components/UpcomingMatchesCarousel';
 import PointsTableSection from './components/PointsTableSection';
+import LoadingSpinner from './components/LoadingSpinner';
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +14,7 @@ export default function Home() {
   console.log("Home Page: Data from Zustand Store:", data);
 
   if (loading) {
-    return <p>Loading IPL data...</p>;
+    return <LoadingSpinner />
   }
   if (error) {
     return <p>Error loading data: {error}</p>;
