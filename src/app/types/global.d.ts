@@ -430,3 +430,73 @@ interface MatchDetailData {
     innings2: InningsData | null;
     matchSummary?: ScheduleMatchRaw | null; // Optional: Add overall summary later
 }
+
+interface ManhattanGraphEntry {
+  InningsNo: number;
+  OverNo: number; // This seems to be 0-indexed in the example (Over 0.1 is OverNo: 0)
+  BattingTeamID: number;
+  OverRuns: number;
+  BowlerRuns: number;
+  BowlerID: string;
+  Wickets: number; // API seems to provide this directly per over!
+  Bowler: string;
+}
+
+interface ManhattanWicketEntry { // Might not be strictly needed if Wickets are in ManhattanGraphEntry
+  InningsNo: number;
+  OverNo: number; // 0-indexed
+  BattingTeamID: number;
+  OutBatsman: string;
+  OutDesc: string;
+  BatsmanRuns: number;
+  BatsmanBalls: number;
+}
+
+
+// Update InningsData interface
+interface WagonWheelEntry {
+  BallID: string;
+  StrikerID: string;
+  BowlerID: string;
+  FielderAngle: number;
+  FielderLengthRatio: number; // We might use this for distance later, but start simple
+  Runs: number;
+  IsFour: number; // 0 or 1
+  IsSix: number; // 0 or 1
+  BatType?: string; // 'L' or 'R' - useful for orientation
+}
+
+// Type for processed chart data
+interface ManhattanChartDataPoint {
+  over: number; // Actual over number (1-based)
+  runs: number;
+  wickets: number;
+  bowler?: string; // Optional bowler name
+}
+
+// Update InningsData interface
+interface InningsData {
+  BattingCard: BattingCardEntry[];
+  Extras: ExtrasInfo[];
+  FallOfWickets: FallOfWicketEntry[];
+  BowlingCard: BowlingCardEntry[];
+  ManhattanGraph?: ManhattanGraphEntry[];
+  ManhattanWickets?: ManhattanWicketEntry[];
+  WagonWheel?: WagonWheelEntry[]; // <-- Add WagonWheel data
+}
+
+interface WicketLabelProps {
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number; // Not always used for LabelList but good practice
+  value?: number | string; // The value associated (wickets in this case)
+  payload?: ManhattanChartDataPoint; // The full data object for this point
+  index?: number; // Index of the data point
+}
+
+// Define the props structure for the ManhattanChart component
+interface ManhattanChartProps {
+  manhattanData: ManhattanGraphEntry[] | undefined;
+  teamColor?: string;
+}
